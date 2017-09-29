@@ -1,0 +1,2 @@
+Address,Borough,Cuisine,Grades,Name,Id
+MongoDBToSQL.Address,Bronx,Bakery,System.Collections.Generic.List`1[MongoDBToSQL.Grade],Morris Park Bake Shop,0
