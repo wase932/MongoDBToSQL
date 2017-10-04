@@ -6,9 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CsvHelper;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
 using Newtonsoft.Json.Linq;
 
 namespace MongoDBToSQL
@@ -21,6 +23,8 @@ namespace MongoDBToSQL
         }
 
         private static string _sourceFile = @"C:\Users\Tolu\Documents\Visual Studio 2015\Projects\MongoDBToSQL\DataSet\RestaurantSmall.json";
+        private static string _destFile = @"C:\Users\Tolu\Documents\Visual Studio 2015\Projects\MongoDBToSQL\DataSet\Output\Sample.csv";
+
         private static string _dataSet =
                 "{\"address\": {\"building\": \"1007\", \"coord\": [-73.856077, 40.848447], \"street\": \"Morris Park Ave\", \"zipcode\": \"10462\"}, \"borough\": \"Bronx\", \"cuisine\": \"Bakery\", \"grades\": [{\"date\": {\"$date\": 1393804800000}, \"grade\": \"A\", \"score\": 2}, {\"date\": {\"$date\": 1378857600000}, \"grade\": \"A\", \"score\": 6}, {\"date\": {\"$date\": 1358985600000}, \"grade\": \"A\", \"score\": 10}, {\"date\": {\"$date\": 1322006400000}, \"grade\": \"A\", \"score\": 9}, {\"date\": {\"$date\": 1299715200000}, \"grade\": \"B\", \"score\": 14}], \"name\": \"Morris Park Bake Shop\", \"restaurant_id\": \"30075445\"}"
             ;
@@ -29,19 +33,51 @@ namespace MongoDBToSQL
 
         static void Main(string[] args)
         {
-            //Read from file =>
-            using (StreamReader file = File.OpenText(_sourceFile))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                Restaurant restaurant2 = (Restaurant) serializer.Deserialize(file, typeof(Restaurant));
 
-                Console.WriteLine(restaurant2.Address.Building);
+            string json = File.ReadAllText(_sourceFile);
+            //replace:
+            string pattern = @"}\n{";
+            string replace = @"},{";
+            Regex rgx = new Regex(pattern);
+            string result = rgx.Replace(json, replace);
+            //Console.WriteLine(result);
+
+            File.WriteAllLines(_destFile,File.ReadAllLines(_sourceFile).Select(x => $"{x},"));
+
+
+            var restaurantList = JsonConvert.DeserializeObject<List<Restaurant>>(json);
+
+            var token = JToken.Parse(json);
+            if (token is JArray)
+            {
+                Console.WriteLine("Array: " + token);
+            }
+            if (token is JObject)
+            {
+                Console.WriteLine("Object: " + token);
             }
 
-            Restaurant restaurant = new Restaurant();
-            JsonConvert.PopulateObject(_dataSet, restaurant);
-            Console.WriteLine(restaurant.Address.Building);
+            //File.WriteAllText(_destFile, JsonConvert.SerializeObject(restaurantList));
 
+
+
+
+            //Read from file =>
+            //using (StreamReader file = File.OpenText(_sourceFile))
+            //{
+            //    JsonSerializer serializer = new JsonSerializer();
+            //    List<Restaurant> restaurant2 = (List<Restaurant>) serializer.Deserialize(file, typeof(Restaurant));
+
+            //    foreach (var r in restaurant2)
+            //    {
+            //        //Console.WriteLine(restaurant2.Address.Building);
+            //    }
+            //    //Console.WriteLine(restaurant2.Address.Building);
+            //}
+
+            //Restaurant restaurant = new Restaurant();
+            //JsonConvert.PopulateObject(_dataSet, restaurant);
+            //Console.WriteLine(restaurant.Address.Building);
 
 
             //var output = JsonConvert.DeserializeObject<Restaurant>(_dataSet);
